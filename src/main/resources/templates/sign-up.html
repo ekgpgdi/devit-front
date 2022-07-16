@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+    <title>sign-up</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Gamja+Flower&family=Jua&display=swap"
+          rel="stylesheet">
+
+    <!------ Include the above in your HEAD tag ---------->
+
+    <style>
+        * {
+            font-family: 'Do Hyeon', sans-serif
+        }
+
+        .card-header {
+            text-align: center;
+            font-size: 40px;
+        }
+
+        label {
+            display: block;
+        }
+
+        .is-danger {
+            color: red;
+        }
+
+        .is-safe {
+            color: #0275D8;
+        }
+
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+        .alert-red {
+            background-color: #FBEFF2;
+            width: 100%;
+            padding: 10px;
+            color: #FA5882;
+        }
+
+        .alert-red-text {
+            width: max-content;
+            margin: auto;
+        }
+    </style>
+    <script>
+
+        $(document).ready(function () {
+            $('#join-alert').prop('hidden', true);
+            $('#email-check-alert').prop('hidden', true);
+        })
+
+        function check_dup() {
+            let email = $('#email').val();
+
+            if (email === "" || email === undefined) {
+                $("#help-id-login").text("이메일을 입력해주세요");
+                return;
+            }
+
+            $.ajax({
+                type: "GET",
+                url: `https://www.devit.shop/api/auth/duplicate-check?email=${email}`,
+                data: {},
+                success: function (response) {
+                    console.log(response);
+                    if (response['data'] === true) {
+                        $("#help-id-login").text("이미 존재하는 이메일입니다.")
+                    } else {
+                        $("#help-id-login").text("올바른 이메일입니다.").removeClass("is-danger").addClass("is-safe")
+                    }
+                }
+            });
+        }
+
+        function sign_up() {
+            if ($("#help-id-login").text() !== '올바른 이메일입니다.') {
+                $('html').scrollTop(0);
+                $('#email-check-alert').prop('hidden', false);
+                setTimeout(function () {
+                    $('#email-check-alert').prop('hidden', true);
+                }, 2000);
+                return;
+            }
+            let email = $("#email").val()
+            let password = $("#password").val()
+            let confirm = $("#confirm").val()
+            let name = $("#name").val()
+
+            if (password !== confirm) {
+                $("#help-password-login").text("비밀번호가 일치하지 않습니다.")
+                $("#password").focus()
+            } else {
+                $("#help-password-login").text("")
+            }
+
+            if (name === "" || name === undefined) {
+                $("#help-name-login").text("이름을 입력해주세요.");
+                $("#name").focus()
+            } else {
+                $("#help-name-login").text("");
+            }
+
+            if (password !== confirm || (name === "" || name === undefined)) {
+                return;
+            }
+
+            let loginData = {
+                "email": email,
+                "password": password,
+                "name:": name,
+                "role": "GENERAL"
+            }
+
+            $.ajax({
+                type: "POST",
+                url: "https://www.devit.shop/api/auth/join",
+                contentType: "application/json",
+                data: JSON.stringify(loginData),
+                success: function (response) {
+                    if (response['httpStatus'] === 201) {
+                        console.log(response);
+                        // access token 저장
+                        localStorage.setItem("Authorization", `Bearer ${response["data"]["accessToken"]}`)
+                        $('html').scrollTop(0);
+                        $('#join-alert').prop('hidden', false);
+                        setTimeout(function () {
+                            $('#join-alert').prop('hidden', true);
+                            window.location.replace('https://devit-spring.s3.ap-northeast-2.amazonaws.com/board.html')
+                        }, 2000);
+                    }
+                },
+                error: function (response) {
+                    let data = response["responseJSON"]
+                    let statusCode = data["httpStatus"]
+                    if (statusCode === 400) {
+                        $('html').scrollTop(0);
+                        $('#email-check-alert').prop('hidden', false);
+                        setTimeout(function () {
+                            $('#email-check-alert').prop('hidden', true);
+                        }, 2000);
+                    }
+                }
+            });
+        }
+
+        function check_all() {
+            const checkbox = document.getElementById('agree_all').checked;
+
+            if (checkbox) {
+                for (let i = 0; i < 4; i++) document.getElementsByName("agree")[i].checked = true;
+            } else {
+                for (let i = 0; i < 4; i++) document.getElementsByName("agree")[i].checked = false;
+            }
+        }
+
+    </script>
+
+</head>
+<body>
+<div class="alert-red" role="alert" id="email-check-alert">
+    <p class="alert-red-text">이메일 중복 체크를 해주세요.</p>
+</div>
+<div class="alert" role="alert" id="join-alert">
+    <p class="alert-text">회원가입 성공</p>
+</div>
+<div class="container">
+
+    <div class="row justify-content-center">
+
+        <div class="col-md-8">
+
+            <div class="card">
+                <div class="logo" style="text-align : center;">
+                    <img src="https://devit-spring.s3.ap-northeast-2.amazonaws.com/images/logo.png" width="250" alt="">
+                </div>
+                <div class="card-header">가입정보 입력하기</div>
+
+                <div class="card-body">
+                    <form class="form-horizontal" method="post" action="#">
+
+                        <div class="form-group">
+                            <label for="email" class="cols-sm-2 control-label">이메일</label>
+                            <div class="cols-sm-10">
+                                <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-envelope fa"
+                                                                           aria-hidden="true"></i></span>
+                                    <input type="text" class="form-control" name="email" id="email"
+                                           placeholder="이메일을 입력해주세요."/>
+                                    <div id="btn-check-dup" class="control is-hidden">
+                                        <button type="button" class="btn btn-primary" onclick="check_dup()">중복확인
+                                        </button>
+                                    </div>
+                                </div>
+                                <p id="help-id-login" class="help is-danger"></p>
+
+                                <div class="form-group" style="padding-top: 10px">
+                                    <label for="password" class="cols-sm-2 control-label">비밀번호</label>
+                                    <div class="cols-sm-10">
+                                        <div class="input-group">
+                                        <span class="input-group-addon"><i class="fa fa-lock fa-lg"
+                                                                           aria-hidden="true"></i></span>
+                                            <input type="password" class="form-control" name="password"
+                                                   id="password"
+                                                   placeholder="비밀번호 (영문+숫자+특수문자 8자이상)"/>
+                                        </div>
+
+                                        <div class="input-group" style="padding-top: 10px">
+                                                <span class="input-group-addon"><i class="fa fa-lock fa-lg"
+                                                                                   aria-hidden="true"></i></span>
+                                            <input type="password" class="form-control" name="confirm" id="confirm"
+                                                   placeholder="비밀번호 확인"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p id="help-password-login" class="help is-danger"></p>
+
+                                <div class="form-group">
+                                    <label for="name" class="cols-sm-2 control-label">이름</label>
+                                    <div class="cols-sm-10">
+                                        <div class="input-group">
+                                                <span class="input-group-addon"><i class="fa fa-user fa"
+                                                                                   aria-hidden="true"></i></span>
+                                            <input type="text" class="form-control" name="name" id="name"
+                                                   placeholder="이름을 입력해주세요."/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <p id="help-name-login" class="help is-danger"></p>
+
+                                <!--                            약관동의                -->
+
+                                <div class="check_group">
+                                    <label for="agree_all">
+                                        <input type="checkbox" name="agree_all" id="agree_all" onchange="check_all()">
+                                        <span>모두 동의합니다</span>
+                                    </label>
+                                    <label for="agree">
+                                        <input type="checkbox" name="agree" value="1" class="normal">
+                                        <span>이용약관 동의<strong>(필수)</strong></span>
+                                    </label>
+                                    <label for="agree">
+                                        <input type="checkbox" name="agree" value="2" class="normal">
+                                        <span>개인정보 수집, 이용 동의<strong>(필수)</strong></span>
+                                    </label>
+                                    <label for="agree">
+                                        <input type="checkbox" name="agree" value="3" class="normal">
+                                        <span>개인정보 이용 동의<strong>(필수)</strong></span>
+                                    </label>
+                                    <label for="agree">
+                                        <input type="checkbox" name="agree" value="4" class="normal">
+                                        <span>이벤트, 혜택정보 수신동의<strong class="select_disable">(선택)</strong></span>
+                                    </label>
+                                </div>
+                                <!--                            약관동의                -->
+
+
+                                <div class="form-group ">
+                                    <button type="button" class="btn btn-primary btn-lg btn-block login-button"
+                                            onclick="sign_up()">
+                                        회원가입하기
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>
