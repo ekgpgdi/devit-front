@@ -76,7 +76,7 @@
 
             $.ajax({
                 type: "GET",
-                url: `https://www.devit.shop/api/auth/duplicate-check?email=${email}`,
+                url: `https://devit-backend.shop/api/auth/duplicate-check?email=${email}`,
                 data: {},
                 success: function (response) {
                     console.log(response);
@@ -103,7 +103,7 @@
             let confirm = $("#confirm").val()
             let name = $("#name").val()
 
-            if (password !== confirm) {
+            if (password !== confirm || password === "" || confirm === "") {
                 $("#help-password-login").text("비밀번호가 일치하지 않습니다.")
                 $("#password").focus()
             } else {
@@ -117,20 +117,22 @@
                 $("#help-name-login").text("");
             }
 
-            if (password !== confirm || (name === "" || name === undefined)) {
+            if (password !== confirm || (name === "" || name === undefined) || (password === "" || confirm === "")) {
                 return;
             }
 
             let loginData = {
                 "email": email,
                 "password": password,
-                "name:": name,
+                "nickName": name,
                 "role": "GENERAL"
             }
 
+            console.log(loginData);
+
             $.ajax({
                 type: "POST",
-                url: "https://www.devit.shop/api/auth/join",
+                url: "https://devit-backend.shop/api/auth/join",
                 contentType: "application/json",
                 data: JSON.stringify(loginData),
                 success: function (response) {
@@ -142,7 +144,7 @@
                         $('#join-alert').prop('hidden', false);
                         setTimeout(function () {
                             $('#join-alert').prop('hidden', true);
-                            window.location.replace('https://devit-spring.s3.ap-northeast-2.amazonaws.com/board.html')
+                            window.location.replace('https://www.devit.shop/board')
                         }, 2000);
                     }
                 },
@@ -188,7 +190,7 @@
 
             <div class="card">
                 <div class="logo" style="text-align : center;">
-                    <img src="https://devit-spring.s3.ap-northeast-2.amazonaws.com/images/logo.png" width="250" alt="">
+                    <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/logo-removebg.png" width="250" alt="">
                 </div>
                 <div class="card-header">가입정보 입력하기</div>
 

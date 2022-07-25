@@ -41,4 +41,9 @@ public class ViewController {
         return "point";
     }
 
+    @GetMapping("/payment")
+    public String payment(){
+        return "payment";
+    }
+
 }

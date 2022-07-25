@@ -140,7 +140,7 @@
                 page = parseInt(params.get("page"));
             }
             getUserPoint();
-            getUserPointRecords(page);
+            getUserPaymentRecords(page);
             calendarSet();
         });
 
@@ -174,11 +174,14 @@
             })
         }
 
-        function getUserPointRecords(page) {
+        function getUserPaymentRecords(page) {
             let token = header_get_token();
+            let payload = parse_jwt(token);
+            let userUid = payload["uuid"];
+
             let fromRegDt = $('#fromRegDt').val();
             let toRegDt = $('#toRegDt').val();
-            let url = `https://devit-backend.shop/api/payment/points/record?page=${page}&pageSize=10&sort=createdAt,desc`;
+            let url = `https://devit-backend.shop/api/payment/payments?page=${page}&pageSize=10&sort=created_at,desc`;
 
             if (fromRegDt !== "" && toRegDt !== "") {
                 url += `&fromRegDt=${fromRegDt}&toRegDt=${toRegDt}`;
@@ -196,6 +199,7 @@
                 success: function (response) {
                     $('#button-list').empty();
                     $('#record-body').empty();
+                    console.log(response)
                     let data = response['data'];
                     let content = data['content'];
 
@@ -205,14 +209,14 @@
                         let createdAt = content[i]["createdAt"];
                         createdAt = moment(createdAt).format('YYYY-MM-DD HH:mm:ss');
                         let index = (10 * (page - 1)) + (i + 1);
-                        if (content[i]["type"] === "CHARGE") {
+                        if (content[i]["providerUid"] === userUid) {
                             tmp_html = `
                             <tr class="charge">
                                 <th scope="row">${index}</th>
-                                <td>${content[i]["existingPoint"]} P</td>
-                                <td>충전</td>
+                                 <td>${content[i]["boardTitle"]}</td>
+                                <td>${content[i]["buyerName"]}</td>
                                 <td>${content[i]["amount"]} P &nbsp;&nbsp;<i class="fa fa-angle-double-up" aria-hidden="true"></i></td>
-                                <td>${content[i]["remainingPoint"]} P</td>
+                                <td>${content[i]["providerName"]}</td>
                                 <td>${createdAt}</td>
                             </tr>
                         `;
@@ -220,10 +224,10 @@
                             tmp_html = `
                             <tr class="down">
                                 <th scope="row">${index}</th>
-                                <td>${content[i]["existingPoint"]} P</td>
-                                <td>사용</td>
+                                <td>${content[i]["boardTitle"]}</td>
+                                <td>${content[i]["buyerName"]}</td>
                                 <td>${content[i]["amount"]} P&nbsp;&nbsp;<i class="fa fa-angle-double-down" aria-hidden="true"></i></td>
-                                <td>${content[i]["remainingPoint"]} P</td>
+                                <td>${content[i]["providerName"]}</td>
                                 <td>${createdAt}</td>
                             </tr>
                         `;
@@ -279,18 +283,18 @@
             if (params.get('page') != null) {
                 page = parseInt(params.get("page")) + 1;
             }
-            location.href = `/point?page=${page}`;
+            location.href = `/payments?page=${page}`;
 
         }
 
         function prePage() {
             let params = new URLSearchParams(window.location.search);
             let page = parseInt(params.get("page")) - 1;
-            location.href = `/point?page=${page}`;
+            location.href = `/payments?page=${page}`;
         }
 
         function movePage(page) {
-            location.href = `/point?page=${page}`;
+            location.href = `/payments?page=${page}`;
         }
 
         function comma(str) {
@@ -320,13 +324,12 @@
                 setTimeout(function () {
                     $('#nopoint-alert').prop('hidden', true);
                 }, 2000);
-            } else {
+            }
+            else {
                 let chargeData = {
                     "type": "CHARGE",
                     "amount": amount
                 }
-
-                console.log(chargeData);
 
                 let token = header_get_token();
 
@@ -342,8 +345,7 @@
                         console.log(response);
                         $("#staticBackdrop").modal('hide');
                         $('#amount').val("");
-                        getUserPointRecords(1);
-                        getUserPoint();
+                        window.location.href = "/point";
                     },
                     error: function (response) {
                         alert("포인트 충전에 실패하였습니다. 관리자에게 문의주세요");
@@ -374,8 +376,7 @@
     </div>
     <div class="nav-inner row-content buffer-left buffer-right even clear-after">
         <div id="brand" style="float:left; display: flex; width: 200px">
-            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo"
-                 class="logo"/>
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo" class="logo"/>
         </div><!-- brand -->
         <nav>
             <ul class="reset" role="navigation">
@@ -395,7 +396,7 @@
         </nav>
     </div><!-- row-content -->
 </header>
-<main role="main">
+<div>
     <div class="card profile">
         <div class="card-body">
             <div class="card-text">
@@ -446,10 +447,8 @@
         </div>
     </div>
     <div class="search-form" style="float: left; width: 100%; display: flex">
-        <p class="big-text" style="margin-left: 10px">POINT 기록</p>
-        <a href="/payment" class="general-text" style="margin-left: 10px; margin-top: 18px">결제 기록 확인하러
-            가기&nbsp;<i
-                    class="fa fa-arrow-right" aria-hidden="true"></i></a>
+        <p class="big-text" style="margin-left: 10px">결제 기록</p>
+        <a href="/point" class="general-text" style="margin-left: 10px; margin-top: 18px">포인트 기록 확인하러 가기&nbsp;<i class="fa fa-arrow-right" aria-hidden="true"></i></a>
         <div style="float: left; display: flex; margin-left: 50%; margin-right: 5%">
             <div class="calender">
                 <label for="fromRegDt"></label><input type="date" id="fromRegDt" name="fromRegDt">
@@ -469,10 +468,10 @@
             <thead class="thead-light">
             <tr>
                 <th scope="col">#</th>
-                <th scope="col">지난 포인트</th>
-                <th scope="col">충전/사용</th>
-                <th scope="col">포인트 변동</th>
-                <th scope="col">보유 포인트</th>
+                <th scope="col">공고글</th>
+                <th scope="col">구매자</th>
+                <th scope="col">가격</th>
+                <th scope="col">제공자</th>
                 <th scope="col">날짜</th>
             </tr>
             </thead>
@@ -482,7 +481,7 @@
     </div>
     <div id='button-list' class="button-group pagination">
     </div>
-</main>
+</div>
 <footer>
     <div class="row" style="margin-left: 5%">
         <div class="row-content buffer clear-after ">
