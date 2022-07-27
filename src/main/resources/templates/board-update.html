@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/layers.min.css" media="screen">
+
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/board.css" media="screen">
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            crossorigin="anonymous"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeHTML.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeRouter.js"></script>
+
+    <title>수정하기</title>
+
+    <!--    font-->
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+
+        .item-img {
+            width: 500px;
+            height: 400px;
+            background-image: url("https://devit-board.s3.ap-northeast-2.amazonaws.com/static/logo.png");
+            background-position: center;
+            background-size: cover;
+            margin-top: 50px;
+        }
+
+        .item-desc {
+            width: 500px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .item-order {
+            width: 100%;
+        }
+
+        .btn-order {
+            float: right;
+            width: 100px;
+            margin-right: 90px;
+
+            display: block;
+        }
+
+        .wrap {
+            width: 500px;
+            margin: auto;
+        }
+
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+        * {
+            font-family: 'Nanum Gothic', sans-serif;
+        }
+
+        /*.btn {*/
+        /*    width: 15px;*/
+        /*    border: 0;*/
+        /*    font-size: 15px;*/
+        /*    padding: 10px;*/
+        /*    float: left;*/
+        /*}*/
+
+        /*.btn: {*/
+        /*    width: 15px;*/
+        /*    border: 0;*/
+        /*    font-size: 15px;*/
+        /*    padding: 10px;*/
+        /*    background-color: #337ab7;*/
+        /*    color: white;*/
+        /*    float: left;*/
+        /*}*/
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+
+        .point-alert {
+            background-color: #EFF2FB;
+            width: 100%;
+            padding: 10px;
+            color: #819FF7;
+        }
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+
+
+        .header {
+            width: 100%;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
+
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            let params = new URLSearchParams(window.location.search);
+            var boardId = params.get('uid');
+            detailListing(boardId);
+            $('#logout-alert').prop('hidden', true);
+            $('#token-login-alert').prop('hidden', true);
+            $('#nopoint-alert').prop('hidden', true);
+            $('#point-alert').prop('hidden', true);
+        });
+
+        function inputNumberFormat(obj) {
+            obj.value = comma(uncomma(obj.value));
+        }
+
+        function comma(str) {
+            str = String(str);
+            return str.replace(/(\d)(?=(?:\d{3})+(?!\d))/g, '$1,');
+        }
+
+        function uncomma(str) {
+            str = String(str);
+            return str.replace(/[^\d]+/g, '');
+        }
+
+        function update() {
+            let params = new URLSearchParams(window.location.search);
+            var boardId = params.get('id')
+            console.log(boardId);
+
+            let title = $('#title').val()
+            let price = $("#price").val()
+            let image = $('#image')[0].files[0]
+            let content = $("#content").val()
+
+            console.log(title);
+            console.log(price);
+            console.log(content);
+            console.log(image);
+
+            let form_data = new FormData()
+            form_data.append("title", title)
+            form_data.append("price", price)
+
+            if (image !== undefined) {
+                form_data.append("image", image)
+            }
+
+            form_data.append("content", content)
+
+            let token1 = localStorage.getItem("Authorization");
+            console.log(token1)
+
+            let token = header_get_token();
+
+            $.ajax({
+                type: "POST",
+                url: "https://devit-backend.shop/api/boards/" + boardId,
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
+                data: form_data,
+                processData: false,
+                contentType: false,
+                success: function (response) {
+
+                    console.log(boardId)
+                    console.log(response)
+
+
+                    console.log(typeof (boardId));
+                    console.log(typeof (response));
+
+                    if (response === parseInt(boardId)) {
+                        location.href = "/board-update-success";
+                    } else {
+                        location.href = "/board-update-fail";
+                    }
+                }
+                , error: function (response) {
+                },
+            });
+        }
+
+        function detailListing(uuid) {
+            $('#detail-list').empty()
+
+            let token = header_get_token();
+            $.ajax({
+                type: "GET",
+                url: `https://devit-backend.shop/api/boards/${uuid}`,
+                data: {},
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
+                success: function (response) {
+
+                    let boards = response
+                    let id = boards['id'];
+                    console.log(boards)
+                    console.log(id)
+
+                    let title = boards['title'];
+                    $('#title').val(title);
+                    let content = boards['content'];
+                    $('#content').val(content);
+                    let price = boards['price'];
+                    $('#price').val(price);
+                }
+            })
+        }
+
+
+    </script>
+</head>
+
+<body>
+<header class="header">
+    <div class="alert" role="alert" id="token-login-alert">
+        <p class="alert-text">로그인이 풀렸습니다. 다시 로그인해주세요.</p>
+    </div>
+    <div class="alert" role="alert" id="logout-alert">
+        <p class="alert-text">로그아웃이 완료되었습니다.</p>
+    </div>
+    <div class="point-alert" role="alert" id="point-alert">
+        <p class="alert-text">충전이 완료되었습니다.</p>
+    </div>
+    <div class="nav-inner row-content buffer-left buffer-right even clear-after">
+        <div id="brand" style="float:left; display: flex; width: 200px">
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo"
+                 class="logo"/>
+        </div><!-- brand -->
+        <nav>
+            <ul class="reset" role="navigation">
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/board"><i class="fa fa-home icon" aria-hidden="true"></i> Home</a>
+                </li>
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/point"><i class="fa fa-krw" aria-hidden="true"></i> POINT</a>
+                </li>
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/profile"><i class="fa fa-user icon" aria-hidden="true"></i> 프로필</a>
+                </li>
+                <li class="menu-item icon" id="general">
+                    <a onclick="logout()"><i class="fa fa-sign-out icon" aria-hidden="true"></i> 로그아웃</a>
+                </li>
+            </ul>
+        </nav>
+    </div><!-- row-content -->
+</header>
+
+<div class="wrap">
+
+    <div class="item-img"></div>
+    <div class="item-desc">
+    </div>
+
+    <div class="item-order" style="margin-left: 40px">
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">제목</span>
+            </div>
+            <input type="text" id="title" class="form-control" aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default"/>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">사진</span>
+            </div>
+            <input type="file" id="image" style="margin-left: 5px"/>
+        </div>
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">가격</span>
+            </div>
+            <input type="text" id="price" placeholder="원" onkeyup="inputNumberFormat(this)" class="form-control"
+                   aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default">
+        </div>
+
+
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">내용</span>
+                <div style="height: 300px; margin: 0px; display: inline-block"></div>
+            </div>
+            <input type="text" id="content" class="form-control" aria-label="Default"
+                   aria-describedby="inputGroup-sizing-default"
+                   cols="30" rows="5">
+        </div>
+
+
+        <button type="button" onclick="update()" class="btn btn-primary btn-order">수정하기</button>
+
+    </div>
+</div>
+</body>
+
+</html>

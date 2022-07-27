@@ -76,9 +76,6 @@
                 type: "GET",
                 url: "https://backend.devit.shop/api/auth/kakao?code=" + kakao_code,
                 data: {},
-                xhrFields: {
-                    withCredentials: true
-                },
                 success: function (response) {
                     console.log(response)
                     if (response['httpStatus'] === 200) {
@@ -110,12 +107,39 @@
 
             let loginData = {
                 "email": email,
-                "password" : password
+                "password": password
             }
+
+            // $.ajax({
+            //     type: "POST",
+            //     url: "http://localhost:8099/api/v1/member/login",
+            //     contentType: "application/json",
+            //     data: JSON.stringify(loginData),
+            //     xhrFields: {withCredentials: true },
+            //     success: function (response) {
+            //         console.log(response);
+            //         if (response['httpStatus'] === 200) {
+            //             localStorage.setItem("Authorization", `Bearer ${response["data"]["accessToken"]}`)
+            //             // window.location.href = '/board';
+            //         } else {
+            //             $('#login-alert').prop('hidden', true);
+            //         }
+            //     },
+            //     error: function (response) {
+            //         let data = response['responseJSON']
+            //         console.log(response);
+            //         if (data['httpStatus'] === 401) {
+            //             $('#login-alert').prop('hidden', false);
+            //             setTimeout(function () {
+            //                 $('#login-alert').prop('hidden', true);
+            //             }, 2000);
+            //         }
+            //     }
+            // })
 
             $.ajax({
                 type: "POST",
-                url: "https://backend.devit.shop/api/auth/login",
+                url: "http://localhost:8081/api/auth/login",
                 contentType: "application/json",
                 data: JSON.stringify(loginData),
                 xhrFields: {

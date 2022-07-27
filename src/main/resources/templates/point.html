@@ -314,6 +314,8 @@
 
         function charge() {
             let amount = $('#amount').val();
+            let regexFor = /,/gi;
+            amount = amount.replace(regexFor, '');
 
             if (amount === undefined || amount === "") {
                 $('#nopoint-alert').prop('hidden', false);

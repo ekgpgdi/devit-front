@@ -213,7 +213,7 @@
                             tmp_html = `
                             <tr class="charge">
                                 <th scope="row">${index}</th>
-                                 <td>${content[i]["boardTitle"]}</td>
+                                <td><a href = "/board-detail?uuid=${content[i]["boardUid"]}">${content[i]["boardTitle"]}</a></td>
                                 <td>${content[i]["buyerName"]}</td>
                                 <td>${content[i]["amount"]} P &nbsp;&nbsp;<i class="fa fa-angle-double-up" aria-hidden="true"></i></td>
                                 <td>${content[i]["providerName"]}</td>
@@ -224,7 +224,7 @@
                             tmp_html = `
                             <tr class="down">
                                 <th scope="row">${index}</th>
-                                <td>${content[i]["boardTitle"]}</td>
+                                <td><a href="/board-detail?uuid=${content[i]["boardUid"]}">${content[i]["boardTitle"]}</a></td>
                                 <td>${content[i]["buyerName"]}</td>
                                 <td>${content[i]["amount"]} P&nbsp;&nbsp;<i class="fa fa-angle-double-down" aria-hidden="true"></i></td>
                                 <td>${content[i]["providerName"]}</td>
@@ -318,6 +318,8 @@
 
         function charge() {
             let amount = $('#amount').val();
+            let regexFor = /,/gi;
+            amount = amount.replace(regexFor, '');
 
             if (amount === undefined || amount === "") {
                 $('#nopoint-alert').prop('hidden', false);

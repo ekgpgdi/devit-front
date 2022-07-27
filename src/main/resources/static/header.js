@@ -63,10 +63,13 @@ function parse_jwt(bearToken) {
 function refresh_token(token) {
     $.ajax({
         type: "GET",
-        url: 'https://www.devit.shop/api/payment/refresh',
+        url: 'https://backend.devit.shop/api/payment/refresh',
         data: {},
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Authorization", token);
+        },
+        xhrFields: {
+            withCredentials: true
         },
         success: function (response) {
             console.log(response)

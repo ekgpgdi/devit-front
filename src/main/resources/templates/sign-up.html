@@ -58,31 +58,119 @@
             width: max-content;
             margin: auto;
         }
+
+        .otc {
+            position: relative;
+            width: 320px;
+            margin: 0 auto;
+        }
+
+        .otc fieldset {
+            border: 0;
+            padding: 0;
+            margin: 0;
+        }
+
+        .otc fieldset div {
+            display: flex;
+            align-items: center;
+        }
+
+        .otc legend {
+            margin: 0 auto 1em;
+            color: #5555FF;
+        }
+
+        input[type="number"] {
+            width: .82em;
+            line-height: 1;
+            margin: .1em;
+            padding: 8px 0 4px;
+            font-size: 2.65em;
+            text-align: center;
+            appearance: textfield;
+            -webkit-appearance: textfield;
+            border: 2px solid #BBBBFF;
+            color: purple;
+            border-radius: 4px;
+        }
+
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        /* 2 group of 3 items */
+        input[type="number"]:nth-child(n+4) {
+            order: 2;
+        }
+
+        .otc div::before {
+            content: '';
+            height: 2px;
+            width: 24px;
+            margin: 0 .25em;
+            order: 1;
+            background: #BBBBFF;
+        }
+
+        /* From: https://gist.github.com/ffoodd/000b59f431e3e64e4ce1a24d5bb36034 */
+        .otc label {
+            border: 0 !important;
+            clip: rect(1px, 1px, 1px, 1px) !important;
+            -webkit-clip-path: inset(50%) !important;
+            clip-path: inset(50%) !important;
+            height: 1px !important;
+            margin: -1px !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+            position: absolute !important;
+            width: 1px !important;
+            white-space: nowrap !important;
+        }
+
     </style>
     <script>
+        let code = 0;
+        let time = 180000;
+        let min = 3;
+        let sec = 60;
 
         $(document).ready(function () {
+            $('#info').prop('hidden', true)
             $('#join-alert').prop('hidden', true);
             $('#email-check-alert').prop('hidden', true);
+            $('#email-confirm').prop('hidden', true);
+            $('#code-check').prop('hidden', true);
         })
 
         function check_dup() {
             let email = $('#email').val();
 
             if (email === "" || email === undefined) {
-                $("#help-id-login").text("이메일을 입력해주세요");
+                $("#help-id-login").text("이메일을 입력해주세요.");
+                return;
+            }
+
+            let regEmail = /^[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_\.]?[0-9a-zA-Z])*\.[a-zA-Z]{2,3}$/;
+
+            if (!regEmail.test(email)) {
+                $("#help-id-login").text("이메일 형식이 맞지 않습니다.");
                 return;
             }
 
             $.ajax({
                 type: "GET",
-                url: `https://devit-backend.shop/api/auth/duplicate-check?email=${email}`,
+                url: `https://backend.devit.shop/api/auth/duplicate-check?email=${email}`,
                 data: {},
                 success: function (response) {
                     console.log(response);
                     if (response['data'] === true) {
                         $("#help-id-login").text("이미 존재하는 이메일입니다.")
                     } else {
+                        $('#dup-button').prop('disabled', true);
+                        $('#email-confirm').prop('hidden', false);
                         $("#help-id-login").text("올바른 이메일입니다.").removeClass("is-danger").addClass("is-safe")
                     }
                 }
@@ -132,9 +220,12 @@
 
             $.ajax({
                 type: "POST",
-                url: "https://devit-backend.shop/api/auth/join",
+                url: "https://backend.devit.shop/api/auth/join",
                 contentType: "application/json",
                 data: JSON.stringify(loginData),
+                xhrFields: {
+                    withCredentials: true
+                },
                 success: function (response) {
                     if (response['httpStatus'] === 201) {
                         console.log(response);
@@ -172,6 +263,111 @@
             }
         }
 
+        function handleOnInput(el, maxlength, next) {
+            if (el.value.length > maxlength) {
+                el.value
+                    = el.value.substr(0, maxlength);
+            }
+            if (next === 6) return;
+            if ($(`#otc-${next}`).val() !== "") {
+                $(`#otc-${next + 1}`).focus();
+            }
+        }
+
+        function send_email() {
+            let email = $('#email').val();
+            $('#help-email-send').text("이메일 전송 중....");
+
+            time = 180000;
+            min = 3;
+            sec = 60;
+
+            $.ajax({
+                type: "GET",
+                url: `https://backend.devit.shop/api/auth/email?email=${email}`,
+                data: {},
+                success: function (response) {
+                    console.log(response);
+                    code = response['data'];
+                    $('#help-email-send').text("전송이 완료되었습니다.");
+                    $('#code-check').prop('hidden', false);
+                    $('#send-button').prop('disabled', true);
+                    $('#help-send').text("1분 뒤 재전송이 가능합니다.");
+                    TIMER();
+                }, error: function (response) {
+                    console.log(response);
+                    $('#help-send').text("오류가 발생했습니다. 관리자에게 문의해주세요. [smRladlTwh@gmail.com] ");
+                }
+            });
+        }
+
+        function TIMER() {
+            let Timer = document.getElementById('Timer'); //스코어 기록창-분
+            Timer.value = min + ":" + '00';
+            PlAYTIME = setInterval(function () {
+                time = time - 1000; //1초씩 줄어듦
+                min = time / (60 * 1000); //초를 분으로 나눠준다.
+
+                if (min === 2) {
+                    $('#help-send').text("이메일이 오지 않은 경우 관리자에게 문의주세요. [smRladlTwh@gmail.com]");
+                    $('#send-button').prop('disabled', false);
+                }
+
+                if (sec > 0) { //sec=60 에서 1씩 빼서 출력해준다.
+                    sec = sec - 1;
+                    Timer.value = Math.floor(min) + ':' + sec; //실수로 계산되기 때문에 소숫점 아래를 버리고 출력해준다.
+
+                }
+                if (sec === 0 && min !== 0) {
+                    // 0에서 -1을 하면 -59가 출력된다.
+                    // 그래서 0이 되면 바로 sec을 60으로 돌려주고 value에는 0을 출력하도록 해준다.
+                    sec = 60;
+                    Timer.value = Math.floor(min) + ':' + '00'
+                }
+
+                if (min === 0 && sec === 0) {
+                    clearInterval(PlAYTIME);
+                    code = 0;
+                    $('#help-email-send').text("코드가 만료되었습니다. 이메일을 재전송해주세요.");
+                }
+
+            }, 1000); //1초마다
+        }
+
+        function codeConfirm() {
+            let num1 = $('#otc-1').val();
+            let num2 = $('#otc-2').val();
+            let num3 = $('#otc-3').val();
+            let num4 = $('#otc-4').val();
+            let num5 = $('#otc-5').val();
+            let num6 = $('#otc-6').val();
+
+            if (num1 === "" || num2 === "" || num3 === "" || num4 === "" || num5 === "" || num6 === "") {
+                $("#help-code").text("빈칸 없이 입력해주세요");
+            }
+
+            let codeStr = num1 + num2 + num3 + num4 + num5 + num6;
+
+            if (String(code) !== codeStr) {
+                $("#help-code").text("코드가 맞지 않습니다.");
+            } else {
+                $('#otc-1').prop('disabled', true);
+                $('#otc-2').prop('disabled', true);
+                $('#otc-3').prop('disabled', true);
+                $('#otc-4').prop('disabled', true);
+                $('#otc-5').prop('disabled', true);
+                $('#otc-6').prop('disabled', true);
+                clearInterval(PlAYTIME);
+                $('#help-send').text("");
+                $("#help-code").text("인증이 완료되었습니다.").removeClass("is-danger").addClass("is-safe")
+                $('#code-confirm').prop('disabled', true);
+                $('#send-button').prop('disabled', true);
+                $('#info').prop('hidden', false);
+                $('#timer-box').prop('hidden', true);
+            }
+
+        }
+
     </script>
 
 </head>
@@ -190,7 +386,8 @@
 
             <div class="card">
                 <div class="logo" style="text-align : center;">
-                    <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/logo-removebg.png" width="250" alt="">
+                    <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/logo-removebg.png" width="250"
+                         alt="">
                 </div>
                 <div class="card-header">가입정보 입력하기</div>
 
@@ -206,78 +403,140 @@
                                     <input type="text" class="form-control" name="email" id="email"
                                            placeholder="이메일을 입력해주세요."/>
                                     <div id="btn-check-dup" class="control is-hidden">
-                                        <button type="button" class="btn btn-primary" onclick="check_dup()">중복확인
+                                        <button type="button" class="btn btn-primary" onclick="check_dup()"
+                                                id="dup-button">중복확인
                                         </button>
                                     </div>
                                 </div>
                                 <p id="help-id-login" class="help is-danger"></p>
 
-                                <div class="form-group" style="padding-top: 10px">
-                                    <label for="password" class="cols-sm-2 control-label">비밀번호</label>
-                                    <div class="cols-sm-10">
-                                        <div class="input-group">
+                                <div class="input-group" id="email-confirm">
+                                    <p style="margin-top: 5px" id="help-email-send">이메일 인증이 필요합니다.</p>
+                                    <button type="button" class="btn btn-primary"
+                                            id="send-button"
+                                            style="height: 35px; margin-left: 20px" onclick="send_email()">인증 메일 전송하기
+                                    </button>
+                                    <p id="help-send" class="help is-danger"
+                                       style="margin-left: 10px; margin-top: 5px"></p>
+                                </div>
+
+                                <div class="input-group" id="code-check">
+
+                                    <fieldset>
+                                        <legend>Validation Code</legend>
+
+                                        <!-- https://developer.apple.com/documentation/security/password_autofill/enabling_password_autofill_on_an_html_input_element -->
+                                        <div>
+                                            <input type="number" pattern="[0-9]*" value=""
+                                                   autocomplete="one-time-code" id="otc-1"
+                                                   oninput='handleOnInput(this, 1, 1)' required>
+                                            <!-- Autocomplete not to put on other input -->
+                                            <input type="number" pattern="[0-9]*" min="0" max="9"
+                                                   oninput='handleOnInput(this, 1, 2)'
+                                                   value="" id="otc-2" required>
+                                            <input type="number" pattern="[0-9]*" min="0" max="9"
+                                                   oninput='handleOnInput(this, 1, 3)'
+                                                   value="" id="otc-3" required>
+                                            <input type="number" pattern="[0-9]*" min="0" max="9"
+                                                   oninput='handleOnInput(this, 1, 4)'
+                                                   value="" id="otc-4" required>
+                                            <input type="number" pattern="[0-9]*" min="0" max="9"
+                                                   oninput='handleOnInput(this, 1, 5)'
+                                                   value="" id="otc-5" required>
+                                            <input type="number" pattern="[0-9]*" min="0" max="9"
+                                                   oninput='handleOnInput(this, 1, 6)'
+                                                   value="" id="otc-6" required>
+                                        </div>
+                                    </fieldset>
+
+                                    <button type="button" class="btn btn-primary"
+                                            id="code-confirm"
+                                            style="height: 70px; margin-left: 20px; margin-top: 45px"
+                                            onclick="codeConfirm()">인증
+                                    </button>
+
+                                    <div style="float: left;display: flex; margin-left: 30px; font-size: 20px; margin-top: 5px"
+                                         id="timer-box">
+                                        <label for="Timer">남은 시간 : </label>
+                                        <input id="Timer" type="text" value="" readonly
+                                               style="border: 0; margin-left: 5px; height: 30px"/>
+                                    </div>
+                                    <p id="help-code" class="help is-danger"></p>
+                                </div>
+
+                                <div id="info">
+
+                                    <div class="form-group" style="padding-top: 10px">
+                                        <label for="password" class="cols-sm-2 control-label">비밀번호 (20자 제한)</label>
+                                        <div class="cols-sm-10">
+                                            <div class="input-group">
                                         <span class="input-group-addon"><i class="fa fa-lock fa-lg"
                                                                            aria-hidden="true"></i></span>
-                                            <input type="password" class="form-control" name="password"
-                                                   id="password"
-                                                   placeholder="비밀번호 (영문+숫자+특수문자 8자이상)"/>
-                                        </div>
+                                                <input type="password" class="form-control" name="password"
+                                                       id="password"
+                                                       placeholder="비밀번호 (영문+숫자+특수문자 8자이상)"
+                                                       maxlength="20"/>
+                                            </div>
 
-                                        <div class="input-group" style="padding-top: 10px">
+                                            <div class="input-group" style="padding-top: 10px">
                                                 <span class="input-group-addon"><i class="fa fa-lock fa-lg"
                                                                                    aria-hidden="true"></i></span>
-                                            <input type="password" class="form-control" name="confirm" id="confirm"
-                                                   placeholder="비밀번호 확인"/>
+                                                <input type="password" class="form-control" name="confirm" id="confirm"
+                                                       placeholder="비밀번호 확인"
+                                                       maxlength="20"/>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <p id="help-password-login" class="help is-danger"></p>
+                                    <p id="help-password-login" class="help is-danger"></p>
 
-                                <div class="form-group">
-                                    <label for="name" class="cols-sm-2 control-label">이름</label>
-                                    <div class="cols-sm-10">
-                                        <div class="input-group">
+                                    <div class="form-group">
+                                        <label for="name" class="cols-sm-2 control-label">이름 (8자 제한)</label>
+                                        <div class="cols-sm-10">
+                                            <div class="input-group">
                                                 <span class="input-group-addon"><i class="fa fa-user fa"
                                                                                    aria-hidden="true"></i></span>
-                                            <input type="text" class="form-control" name="name" id="name"
-                                                   placeholder="이름을 입력해주세요."/>
+                                                <input type="text" class="form-control" name="name" id="name"
+                                                       maxlength="8"
+                                                       placeholder="이름을 입력해주세요."/>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                                <p id="help-name-login" class="help is-danger"></p>
+                                    <p id="help-name-login" class="help is-danger"></p>
 
-                                <!--                            약관동의                -->
+                                    <!--                            약관동의                -->
 
-                                <div class="check_group">
-                                    <label for="agree_all">
-                                        <input type="checkbox" name="agree_all" id="agree_all" onchange="check_all()">
-                                        <span>모두 동의합니다</span>
-                                    </label>
-                                    <label for="agree">
-                                        <input type="checkbox" name="agree" value="1" class="normal">
-                                        <span>이용약관 동의<strong>(필수)</strong></span>
-                                    </label>
-                                    <label for="agree">
-                                        <input type="checkbox" name="agree" value="2" class="normal">
-                                        <span>개인정보 수집, 이용 동의<strong>(필수)</strong></span>
-                                    </label>
-                                    <label for="agree">
-                                        <input type="checkbox" name="agree" value="3" class="normal">
-                                        <span>개인정보 이용 동의<strong>(필수)</strong></span>
-                                    </label>
-                                    <label for="agree">
-                                        <input type="checkbox" name="agree" value="4" class="normal">
-                                        <span>이벤트, 혜택정보 수신동의<strong class="select_disable">(선택)</strong></span>
-                                    </label>
-                                </div>
-                                <!--                            약관동의                -->
+                                    <div class="check_group">
+                                        <label for="agree_all">
+                                            <input type="checkbox" name="agree_all" id="agree_all"
+                                                   onchange="check_all()">
+                                            <span>모두 동의합니다</span>
+                                        </label>
+                                        <label for="agree">
+                                            <input type="checkbox" name="agree" value="1" class="normal">
+                                            <span>이용약관 동의<strong>(필수)</strong></span>
+                                        </label>
+                                        <label for="agree">
+                                            <input type="checkbox" name="agree" value="2" class="normal">
+                                            <span>개인정보 수집, 이용 동의<strong>(필수)</strong></span>
+                                        </label>
+                                        <label for="agree">
+                                            <input type="checkbox" name="agree" value="3" class="normal">
+                                            <span>개인정보 이용 동의<strong>(필수)</strong></span>
+                                        </label>
+                                        <label for="agree">
+                                            <input type="checkbox" name="agree" value="4" class="normal">
+                                            <span>이벤트, 혜택정보 수신동의<strong class="select_disable">(선택)</strong></span>
+                                        </label>
+                                    </div>
+                                    <!--                            약관동의                -->
 
 
-                                <div class="form-group ">
-                                    <button type="button" class="btn btn-primary btn-lg btn-block login-button"
-                                            onclick="sign_up()">
-                                        회원가입하기
-                                    </button>
+                                    <div class="form-group ">
+                                        <button type="button" class="btn btn-primary btn-lg btn-block login-button"
+                                                onclick="sign_up()">
+                                            회원가입하기
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
