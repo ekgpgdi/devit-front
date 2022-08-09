@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-size: 11px;
+        }
+
+        .chat_list_wrap {
+            list-style: none;
+        }
+
+        .chat_list_wrap .header {
+            font-size: 14px;
+            padding: 15px 0;
+            background: #2A3EB2;
+            color: white;
+            text-align: center;
+            font-family: "Josefin Sans", sans-serif;
+        }
+
+        .chat_list_wrap .search {
+            background: #eee;
+            padding: 5px;
+        }
+
+        .chat_list_wrap .search input[type="text"] {
+            width: 100%;
+            border-radius: 4px;
+            padding: 5px 0;
+            border: 0;
+            text-align: center;
+        }
+
+        .chat_list_wrap .list {
+            padding: 0 16px;
+        }
+
+        .chat_list_wrap .list ul {
+            width: 100%;
+            list-style: none;
+            margin-top: 3px;
+        }
+
+        .chat_list_wrap .list ul li {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .chat_list_wrap .list ul li table {
+            width: 100%;
+        }
+
+        .chat_list_wrap .list ul li table td.profile_td {
+            width: 50px;
+            padding-right: 11px;
+        }
+
+        .chat_list_wrap .list ul li table td.profile_td img {
+            width: 50px;
+            height: auto;
+        }
+
+        .chat_list_wrap .list ul li table td.chat_td .email {
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .chat_list_wrap .list ul li table td.time_td {
+            width: 90px;
+            text-align: center;
+        }
+
+        .chat_list_wrap .list ul li table td.time_td .time {
+            padding-bottom: 4px;
+        }
+
+        .chat_list_wrap .list ul li table td.time_td .check p {
+            width: 5px;
+            height: 5px;
+            margin: 0 auto;
+            -webkit-border-radius: 50%;
+            -moz-border-radius: 50%;
+            border-radius: 50%;
+            background: #e51c23;
+        }
+    </style>
+    <script>
+        $(function () {
+            $('#chat-list').empty();
+
+            let token = header_get_token();
+
+            let userInfo = parseJwt();
+            let userId = userInfo['uuid']
+            let nickName = userInfo['nickName']
+            let roomName = null;
+            let temp_html = null;
+            let receiverName = null;
+            let receiverId = null;
+            let roomId = null;
+            let boardId = null;
+
+            $.ajax({
+                type: "GET",
+                url: "https://devit-backend.shop/api/chats/rooms", //후에 바뀌어야함
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
+                data: {},
+                success: function (response) {
+                    console.log(response)
+                    console.log(response['data'])
+                    let room = response['data'] //JSON 화 시켜주기
+                    console.log(room);
+
+                    if (room.length) {
+                        for (let i = 0; i < room.length; i++) {
+                            boardId = room[i]['boardId'];
+                            receiverName = room[i]['receiverName'];
+                            receiverId = room[i]['receiverId'];
+                            roomId = room[i]['roomId'];
+                            let url = "/chat?roomId=" + roomId + "&receiverId=" + receiverId
+                                + "&receiverName=" + receiverName + "&boardId=" + boardId;
+                            if(nickName === room[i]['senderName']) {
+                                temp_html = `
+                        <a href="${url}">
+                            <li>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td class="profile_td">
+                                            <!--Img-->
+<!--                                            <img src="./images/profile_preview.png"/>-->
+                                        </td>
+                                        <td class="chat_td">
+                                            <!--Email & Preview-->
+                                            <div class="email">
+                                                ${room[i]['receiverName']}
+                                            </div>
+                                            <div class="chat_preview">
+                                            </div>
+                                        </td>
+                                        <td class="time_td">
+                                            <!--Time & Check-->
+                                            <div class="time">
+                                            </div>
+                                            <div class="check">
+                                                <p></p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </li>
+                        </a>
+                        `
+                            }
+                            else {
+                                temp_html = `
+                        <a href="${url}">
+                        <li>
+                            <table cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td class="profile_td">
+                                        <!--Img-->
+<!--                                        <img src="./images/profile_preview.png"/>-->
+                                    </td>
+                                    <td class="chat_td">
+                                        <!--Email & Preview-->
+                                        <div class="email">
+                                            ${room[i]['senderName']}
+                                        </div>
+                                        <div class="chat_preview">
+                                        </div>
+                                    </td>
+                                    <td class="time_td">
+                                        <!--Time & Check-->
+                                        <div class="time">
+                                        </div>
+                                        <div class="check">
+                                            <p></p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </li>
+                        </a>`
+
+                            }
+                            console.log(room[i])
+                            $('#chat-list').append(temp_html);
+                        }
+                    }
+
+                }
+            })
+        })
+
+
+        function parseJwt() {
+            let token = localStorage.getItem("Authorization");
+            let base64Url = token.split('.')[1];
+            let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            let jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function (c) {
+                return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+            }).join(''));
+
+            return JSON.parse(jsonPayload);
+        }
+    </script>
+</head>
+<body>
+<div class="chat_list_wrap">
+    <div class="header">
+        채팅방
+    </div>
+    <div class="list">
+        <ul id="chat-list">
+        </ul>
+    </div>
+</div>
+</body>
+</html>

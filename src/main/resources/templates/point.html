@@ -130,6 +130,11 @@
             $('#point-alert').prop('hidden', true);
 
             let token = header_get_token();
+            console.log(token);
+            if(token === undefined){
+                token = localStorage.getItem("Authorization");
+                console.log(token);
+            }
             let userInfo = parse_jwt(token);
             $('#name').text(`사용자 이름 : ${userInfo["nickName"]}`);
             $('#email').text(`사용자 이메일 : ${userInfo["email"]}`);
@@ -139,8 +144,8 @@
             if (params.get('page') != null) {
                 page = parseInt(params.get("page"));
             }
-            getUserPoint();
-            getUserPointRecords(page);
+            getUserPoint(token);
+            getUserPointRecords(token, page);
             calendarSet();
         });
 
@@ -154,14 +159,17 @@
             toRegDt.setAttribute("max", today);
         }
 
-        function getUserPoint() {
-            let token = header_get_token();
+        function getUserPoint(token) {
+            token = localStorage.getItem("Authorization");
             $.ajax({
                 type: "GET",
-                url: 'https://devit-backend.shop/api/payment/points',
+                url: 'https://backend.devit.shop/api/payment/points',
                 data: {},
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", token);
+                },
+                xhrFields: {
+                    withCredentials: true
                 },
                 success: function (response) {
                     let point = response['data']['point'];
@@ -174,11 +182,11 @@
             })
         }
 
-        function getUserPointRecords(page) {
-            let token = header_get_token();
+        function getUserPointRecords(token, page) {
+            token = localStorage.getItem("Authorization");
             let fromRegDt = $('#fromRegDt').val();
             let toRegDt = $('#toRegDt').val();
-            let url = `https://devit-backend.shop/api/payment/points/record?page=${page}&pageSize=10&sort=createdAt,desc`;
+            let url = `https://backend.devit.shop/api/payment/points/record?page=${page}&pageSize=10&sort=createdAt,desc`;
 
             if (fromRegDt !== "" && toRegDt !== "") {
                 url += `&fromRegDt=${fromRegDt}&toRegDt=${toRegDt}`;
@@ -192,6 +200,9 @@
                 data: {},
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", token);
+                },
+                xhrFields: {
+                    withCredentials: true
                 },
                 success: function (response) {
                     $('#button-list').empty();
@@ -334,18 +345,21 @@
 
                 $.ajax({
                     type: "PUT",
-                    url: "https://devit-backend.shop/api/payment/points",
+                    url: "https://backend.devit.shop/api/payment/points",
                     contentType: "application/json",
                     data: JSON.stringify(chargeData),
                     beforeSend: function (xhr) {
                         xhr.setRequestHeader("Authorization", token);
                     },
+                    xhrFields: {
+                        withCredentials: true
+                    },
                     success: function (response) {
                         console.log(response);
                         $("#staticBackdrop").modal('hide');
                         $('#amount').val("");
-                        getUserPointRecords(1);
-                        getUserPoint();
+                        getUserPointRecords(token, 1);
+                        getUserPoint(token);
                     },
                     error: function (response) {
                         alert("포인트 충전에 실패하였습니다. 관리자에게 문의주세요");
@@ -376,13 +390,12 @@
     </div>
     <div class="nav-inner row-content buffer-left buffer-right even clear-after">
         <div id="brand" style="float:left; display: flex; width: 200px">
-            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo"
-                 class="logo"/>
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo" class="logo" onclick="window.location.href='/'"/>
         </div><!-- brand -->
         <nav>
             <ul class="reset" role="navigation">
                 <li class="menu-item icon">
-                    <a href="https://www.devit.shop/board"><i class="fa fa-home icon" aria-hidden="true"></i> Home</a>
+                    <a href="https://www.devit.shop/board"><i class="fa fa-list" aria-hidden="true"></i> 게시물</a>
                 </li>
                 <li class="menu-item icon">
                     <a href="https://www.devit.shop/point"><i class="fa fa-krw" aria-hidden="true"></i> POINT</a>

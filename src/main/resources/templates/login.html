@@ -125,7 +125,7 @@
                     console.log(response);
                     if (response['httpStatus'] === 200) {
                         localStorage.setItem("Authorization", `Bearer ${response["data"]["accessToken"]}`)
-                        // window.location.href = '/board';
+                        window.location.href = '/board';
                     } else {
                         $('#login-alert').prop('hidden', true);
                     }

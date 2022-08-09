@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <title>DevIT</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.1.1/js/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/bootstrap.css">
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeHTML.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeRouter.js"></script>
+
+    <style>
+        * {
+            font-family: 'Do Hyeon', sans-serif;
+        }
+
+        .favorite {
+            position: absolute;
+            top: 1px;
+            left: 130px;
+        }
+
+        .image_card {
+            position: relative;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background: rgb(240, 239, 239);
+            font-family: "Poppins", sans-serif;
+        }
+
+        h1 {
+            margin: 0;
+            font-weight: 400;
+        }
+
+        h2 {
+            margin: 0;
+            font-weight: 400;
+            display: inline-block;
+        }
+
+        .box {
+            background: #fff;
+            width: 50rem;
+            padding: 3rem;
+            margin: 1rem auto;
+            border-radius: 0.5rem;
+        }
+
+        .header {
+            display: grid;
+            grid-template-columns: 40% 60%;
+        }
+
+        .header-left {
+            display: grid;
+            justify-items: center;
+            align-items: center;
+            font-size: 2rem;
+        }
+
+        .first-name {
+            font-weight: 400;
+            margin: 0;
+        }
+
+        .last-name {
+            font-weight: 200;
+            margin: 0;
+        }
+
+        .header-right {
+            width: 100%;
+            display: grid;
+            justify-items: end;
+        }
+
+        .header-right p {
+            display: inline-block;
+        }
+
+        .head-color {
+            background-color: #DFE5EC;
+            border-radius: 0.6rem;
+        }
+
+        .icon {
+            color: rgb(223, 223, 223);
+            font-size: 1.5rem;
+            margin-right: 0.5rem;
+        }
+
+        .ex {
+            border: 2px solid #000;
+            width: 100%;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        .t-table {
+            border: 2px solid #000;
+            width: 100%;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            border-collapse: collapse;
+        }
+
+        .tt {
+            border: 1px solid #000;
+            padding: 0.4rem;
+        }
+
+        td,
+        th {
+            border: 1px solid #000;
+            padding: 0.4rem;
+        }
+
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+        .nopoint-alert {
+            background-color: #FBEFF2;
+            width: 100%;
+            height: 35px;
+            color: #F7819F;
+        }
+
+        .point-alert {
+            background-color: #EFF2FB;
+            width: 100%;
+            padding: 10px;
+            color: #819FF7;
+        }
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+
+        .profile {
+            margin: 50px;
+        }
+
+        .big-text {
+            font-size: 20px
+        }
+
+        .general-text {
+            font-size: 15px
+        }
+
+        .calender {
+            margin-top: 10px;
+        }
+
+        .search {
+            margin-left: 10px;
+            margin-top: 13px;
+        }
+
+        .search-form {
+            height: 60px;
+            margin: 0 50px 50px;
+        }
+
+        .charge {
+            background-color: #EFF8FB;
+        }
+
+        .down {
+            background-color: #FBEFEF;
+        }
+
+        .pagination {
+            margin-bottom: 50px;
+        }
+
+        .header {
+            width: 100%;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
+    </style>
+
+
+    <script>
+        $(function () {
+            $('#profile-bar').empty();
+
+            let token = header_get_token();
+
+            $.ajax({
+                type: "GET",
+                url: "https://backend.devit.shop/api/users/", //후에 바뀌어야함
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
+                data: {},
+                success: function (response) {
+                    console.log(response['data'])
+                    let data = response['data'] //JSON 화 시켜주기
+                    let nickName = data['nickName']
+                    let email = data['email']
+                    let resume = data['resume']
+                    let phone_number = resume['phone_number']
+                    let gender = resume['gender']
+                    let year = resume['year']
+                    let introduce = resume['introduce']
+                    let careers = resume['careers']
+                    let awards = resume['awards']
+                    let educations = resume['educations']
+
+                    let user_html = `
+                        <p class="user-mail"><i class="fa fa-user"></i>${nickName}</p>
+                        <p class="user-mail"><i class="fa fa-envelope"></i>${email}</p>
+                        <hr />
+                        <button type="button" onclick="location.href='/board'" class="btn btn-primary btn-sm">메인 화면</button>
+                        <button type="button" onclick="location.href='/chat-list'" class="btn btn-primary btn-sm">채팅 목록</button>
+                        <button style="margin-top: 20px" type="button" onclick="location.href='/resume-edit'" class="btn btn-primary btn-sm">이력서 작성</button>
+                        <button style="margin-top: 20px" type="button" onclick="location.href='/point'" class="btn btn-primary btn-sm">포인트 관리</button>
+                    `
+
+                    $('#profile-bar').append(user_html);
+
+                    let tmp_html = `
+                        <div class="header">
+                            <div class="header-left">
+                                <div class="name">
+                                    <h2 class="last-name" style="font-weight: bold; margin-bottom: 30px; margin-left : 30px">${nickName}</h1>
+                                </div>
+                            </div>
+                            <div class="header-right">
+                                <div class="email">
+                                    <p>${email}</p>
+                                    <i class="fa fa-envelope"></i>
+                                </div>
+                                <div class="email">
+                                    <p>${gender}</p>
+                                    <i class="fa fa-venus"></i>
+                                </div>
+                                <div class="linkedin">
+                                    <p>${year}</p>
+                                    <i class="fa fa-calendar-check-o"></i>
+                                </div>
+                                <div class="phone">
+                                    <p>${phone_number}</p>
+                                    <i class="fa fa-phone"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="objective">
+                            <div class="head-color">
+                                <h2>자기소개</h2>
+                            </div>
+                            <p>
+                                ${introduce}
+                            </p>
+                        </div>
+                        <div class="education">
+                            <div class="head-color">
+                                <i class="fas fa-school icon"></i>
+                                <h2>학력사항</h2>
+                            </div>
+                            <table class="t-table">
+                                <tr class="tt">
+                                    <td class="tt">${educations['startDate']}</td>
+                                    <td class="tt"></td>
+                                    <td class="tt">${educations['endDate']}</td>
+                                    <td class="tt"></td>
+                                    <td class="tt">${educations['educationStatus']}</td>
+                                </tr>
+                                <tr class="tt">
+                                    <td class="tt" colspan="2">${educations['university']}</td>
+                                    <td class="tt" colspan="2">${educations['department']}</td>
+                                    <td class="tt"></td>
+                                </tr>
+                                <tr class="tt">
+                                    <td class="tt" colspan="5" style="margin-left:auto;
+            margin-right:auto;">${educations['content']}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="education">
+                            <div class="head-color">
+                                <i class="fas fa-school icon"></i>
+                                <h2>경력사항</h2>
+                            </div>
+                            <table class="t-table">
+                                <tr class="tt">
+                                    <td class="tt">${careers['startDate']}</td>
+                                    <td class="tt"></td>
+                                    <td class="tt">${careers['endDate']}</td>
+                                    <td class="tt"></td>
+                                    <td class="tt">${careers['careerStatus']}</td>
+                                </tr>
+                                <tr class="tt">
+                                    <td class="tt" colspan="2">${careers['office']}</td>
+                                    <td class="tt" colspan="2">${careers['job']}</td>
+                                    <td class="tt">
+                                </tr>
+                                <tr>
+                                    <td colspan="5" style="margin-left:auto;
+            margin-right:auto;">${careers['content']}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="education">
+                            <div class="head-color">
+                                <i class="fas fa-school icon"></i>
+                                <h2>수상사항</h2>
+                            </div>
+                            <table class="t-table">
+                                <tr class="tt">
+                                    <td class="tt" colspan="2">${awards['startDate']}</td>
+                                    <td class="tt" colspan="2">${awards['endDate']}</td>
+                                </tr>
+                                <tr class="tt">
+                                    <td class="tt" colspan="2">${awards['competition']}</td>
+                                    <td class="tt" colspan="2">${awards['awards']}</td>
+                                </tr>
+                                <tr class="tt">
+                                    <td class="tt" colspan="4" style="margin-left:auto;
+            margin-right:auto;">${awards['content']}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    `;
+                    $('#resume-one').append(tmp_html);
+
+                    {
+                        let tmp_html = `<div class="col"padding-left: 5px"></div>`
+                        $('#favorite-bar').append(tmp_html);
+                    }
+
+                }
+            })
+        })
+        ;
+
+    </script>
+</head>
+<body>
+<div class="wrap" style="padding-top: 90px">
+    <div class="profile-header">
+        <div class="profile-img">
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/logo.png" width="200" alt="img">
+        </div>
+    </div>
+    <div class="main-bd">
+        <div class="left-side">
+            <div class="profile-side" id="profile-bar">
+            </div>
+        </div>
+        <div class="right-side">
+            <div class="nav">
+                <ul>
+                    <li onclick="tabs(0)" class="user-post active">이력서</li>
+                    <li onclick="tabs(1)" class="user-review">프로필</li>
+                    <li onclick="tabs(2)" class="user-setting">관심 공고</li>
+                </ul>
+            </div>
+            <div class="profile-body">
+                <div class="profile-posts tab">
+                    <div class="box" id="resume-one">
+                    </div>
+                    <div class="profile-review tab">
+                    </div>
+                    <div class="profile-setting tab" id="favorite-bar">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/profile.js"></script>
+
+<script>
+    includeHTML(function () {
+        includeRouter(function () {
+            // do something in the future
+        });
+    });
+
+</script>
+</body>
+
+</html>

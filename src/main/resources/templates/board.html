@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -13,9 +14,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
 
     <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/layers.min.css" media="screen">
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/layers.min.css" media="screen">
 
-    <link rel="stylesheet" href="/css/board.css" media="screen">
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/board.css" media="screen">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Do+Hyeon&display=swap" rel="stylesheet">
@@ -25,11 +26,20 @@
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
     <![endif]-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+    <script src="https://momentjs.com/downloads/moment.js"></script>
+    <script src="https://momentjs.com/downloads/moment-timezone.min.js"></script>
 
-    <script src="/css/includeHTML.js"></script>
-    <script src="/css/includeRouter.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
 
     <style>
+
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
 
         * {
             font-family: 'Nanum Gothic', sans-serif;
@@ -84,24 +94,103 @@
         }
 
         .pagination {
-
+            margin-bottom: 50px;
         }
 
-        .favorite {
-            position: absolute;
-            top: 1px;
-            left: 130px;
+        .alert-text {
+            width: max-content;
+            margin: auto;
         }
 
         .card {
             position: relative;
         }
 
+        .alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+        .nopoint-alert {
+            background-color: #FBEFF2;
+            width: 100%;
+            height: 35px;
+            color: #F7819F;
+        }
+
+        .point-alert {
+            background-color: #EFF2FB;
+            width: 100%;
+            padding: 10px;
+            color: #819FF7;
+        }
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+
+        .profile {
+            margin: 50px;
+        }
+
+        .big-text {
+            font-size: 20px
+        }
+
+        .general-text {
+            font-size: 15px
+        }
+
+        .calender {
+            margin-top: 10px;
+        }
+
+        .search {
+            margin-left: 10px;
+            margin-top: 13px;
+        }
+
+        .search-form {
+            height: 60px;
+            margin: 0 50px 50px;
+        }
+
+        .charge {
+            background-color: #EFF8FB;
+        }
+
+        .down {
+            background-color: #FBEFEF;
+        }
+
+        .pagination {
+            margin-bottom: 50px;
+        }
+
+        .header {
+            width: 100%;
+        }
+
+        .logo {
+            height: 50px;
+        }
+
     </style>
 
     <script>
-
         $(document).ready(function () {
+            $('#logout-alert').prop('hidden', true);
+            $('#token-login-alert').prop('hidden', true);
+            $('#nopoint-alert').prop('hidden', true);
+            $('#point-alert').prop('hidden', true);
+
             let params = new URLSearchParams(window.location.search);
             if (params.get('token') != null) {
                 let token = params.get("token");
@@ -119,10 +208,11 @@
                 $('#search-input').val(searchText)
                 boardList(page, searchText);
             }
+
         });
 
+
         function nextPage() {
-            console.log("?")
             let params = new URLSearchParams(window.location.search);
             let page = 1;
             if (params.get('page') != null) {
@@ -169,69 +259,40 @@
             }
         }
 
-
-        function favorite_write(dic) {
-
-            $.ajax({
-                type: "POST",
-                url: `/api/favorite/write`,
-                data: {
-                    board_id: dic //게시글 pk 값
-                },
-                success: function (response) {
-                    $("#bookmark").load(window.location.href + "#bookmark"); // 화면 과부화를 없애기 위해 특정 태그만 재부팅
-
-                }
-            })
-        }
-
-        function favorite_delete(dic) {
-
-            $.ajax({
-                type: "POST",
-                url: `/api/favorite/delete`,
-                data: {
-                    board_id: dic //게시글 pk 값
-                },
-                success: function (response) {
-                    $("#bookmark").load(window.location.href + "#bookmark"); // 화면 과부화를 없애기 위해 특정 태그만 재부팅
-
-                }
-            })
-        }
-
         function boardList(page, searchText) {
-            tmp_html = `<button type="button" class="btn btn-white" onclick="nextPage()" id="next-button">></button>`
-            $('#button-list').append(tmp_html)
-            return;
 
             $('#board-list').empty();
             $('#button-list').empty();
             $('#recent-list').empty()
             let pageSize = 10;
-            let url = `/api/boards?page=${page}&pageSize=${pageSize}`
+            let url = `https://backend.devit.shop/api/boards?page=${page}&pageSize=${pageSize}`
             if (searchText !== "") {
                 url += `&keyword=${searchText}`;
             }
             console.log(url);
 
+
+            let token = header_get_token();
+
             $.ajax({
                 type: "GET",
                 url: url,
                 data: {},
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
                 success: function (response) {
-
                     console.log(response)
                     let boards = response['content']
                     let favorites = []
-                    let total = response['totalPages'];
 
+                    let total = response['totalPages'];
+                    let searchtotal = response['totalElements'];
 
                     if (searchText !== '') {
-                        $('#search-text').text(`${total} results for ${searchText}`)
+                        $('#search-text').text(`${searchText} 에 대한 검색결과 ${searchtotal}개`)
                     }
                     for (let i = 0; i < boards.length; i++) {
-
                         if (i < 5) {
                             let tmp_html = `
                                     <li><a href="#" onclick="boardDetail('${boards[i]['boardUid']}')">${boards[i]['title']}</a></li>
@@ -242,7 +303,15 @@
                         let title = boards[i]['title'];
                         let content = boards[i]['content'];
                         let price = boards[i]['price'];
-                        let created_at = boards[i]['createdAt'].split(".")[0];
+
+                        let created_at1 = boards[i]['createdAt'].split(".")[0];
+                        console.log(typeof(created_at1))
+
+                        let created_at = moment(created_at1).add(9, "h").format('YYYY-MM-DD HH:mm:ss');
+
+                        // created_at = moment().utc().format('YYYY-MM-DD HH:mm:ss');
+                        // created_at = moment().tz("Asia/Seoul").format('YYYY-MM-DD HH:mm:ss');
+
                         let image_url = boards[i]['imageUrl'];
                         let board_id = String(boards[i]['boardUid']);
                         let user_id = String(boards[i]['userUid'])
@@ -257,12 +326,6 @@
                         <article class="clear-after white-card">
                             <div class="column three card">
                                 <img src="https://devit-board.s3.ap-northeast-2.amazonaws.com/static/logo.png" alt="" class="thumbnail">
-                                <div id="bookmark">
-                                <button class="favorite" style="border: 0; outline: 0; background-color:transparent" onclick="boardDetail('${boards[i]['boardUid']}')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
-                                        <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
-                                    </svg>
-                                </button></div>
                             </div>
 
                             <div class="column nine last">
@@ -282,12 +345,7 @@
                         <article class="clear-after white-card">
                             <div class="column three card">
                             <img src="${image_url}" alt="" class="thumbnail">
-                            <div id="bookmark">
-                                <button class="favorite" style="border: 0; outline: 0; background-color:transparent" onclick="favorite_delete('${board_id}')">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bookmark-fill" viewBox="0 0 16 16">
-                                        <path d="M2 2v13.5a.5.5 0 0 0 .74.439L8 13.069l5.26 2.87A.5.5 0 0 0 14 15.5V2a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/>
-                                    </svg>
-                                </button></div></div>
+                            </div>
 
                             <div class="column nine last">
                                 <h2><a href="#" onclick="boardDetail('${boards[i]['boardUid']}')"${title}</a></h2>
@@ -306,13 +364,8 @@
                                 tmp_html = `
                         <article class="clear-after white-card">
                             <div class="column three card">
-                                <img src="/css/logo.png" alt="" class="thumbnail">
-                    <div id="bookmark">
-                            <button class="favorite" style="border: 0; outline: 0; background-color:transparent" onclick="favorite_write('${board_id}')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16">
-                                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
-                                </svg>
-                            </button></div>
+                                <img src="https://devit-board.s3.ap-northeast-2.amazonaws.com/static/logo.png" alt="" class="thumbnail">
+
                             </div>
                             <div class="column nine last">
                                 <h2><a href="#" onclick="boardDetail('${boards[i]['boardUid']}')">${title}</a></h2>
@@ -329,16 +382,8 @@
                                 tmp_html = `
                         <article class="clear-after white-card">
                             <div class="column three card">
-
                                 <img src="${image_url}" alt="" class="thumbnail">
-                                    <div id="bookmark">
-                                                                <button class="favorite" style="border: 0; outline: 0; background-color:transparent" onclick="favorite_write('${board_id}')">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" class="bi bi-bookmark" viewBox="0 0 16 16">
-                                    <path d="M2 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v13.5a.5.5 0 0 1-.777.416L8 13.101l-5.223 2.815A.5.5 0 0 1 2 15.5V2zm2-1a1 1 0 0 0-1 1v12.566l4.723-2.482a.5.5 0 0 1 .554 0L13 14.566V2a1 1 0 0 0-1-1H4z"/>
-                                </svg>
-                            </button></div>
-</div>
-
+                                </div>
                             <div class="column nine last">
                                 <h2><a href="#" onclick="boardDetail('${boards[i]['boardUid']}')">${title}</a></h2>
                                 <h5 class="meta-post">
@@ -383,6 +428,11 @@
                     } else {
                         $('#pre-button').prop('disabled', false);
                     }
+                    console.log(total)
+                    console.log(page)
+                    console.log(pageSize)
+                    console.log(parseInt(page) * parseInt(pageSize))
+
                     if (parseInt(total) <= parseInt(page)) {
                         $('#next-button').prop('disabled', true);
                     } else {
@@ -393,19 +443,51 @@
         }
 
         function boardDetail(boardUuid) {
-            location.href = `/boards/detail?uuid=${boardUuid}`
+            location.href = `/board-detail?uuid=${boardUuid}`
             console.log(boardUuid)
         }
 
         // 구인 글 작성 버튼 클릭시 실행되는 함수
         function boardWrite() {
-            location.href = `/boards/write`;
+            location.href = `/board-upload`;
         }
     </script>
 </head>
 
 <body class="search list-style">
-<header include-html="/header"></header>
+<header class="header">
+    <div class="alert" role="alert" id="token-login-alert">
+        <p class="alert-text">로그인이 풀렸습니다. 다시 로그인해주세요.</p>
+    </div>
+    <div class="alert" role="alert" id="logout-alert">
+        <p class="alert-text">로그아웃이 완료되었습니다.</p>
+    </div>
+    <div class="point-alert" role="alert" id="point-alert">
+        <p class="alert-text">충전이 완료되었습니다.</p>
+    </div>
+    <div class="nav-inner row-content buffer-left buffer-right even clear-after">
+        <div id="brand" style="float:left; display: flex; width: 200px">
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo" class="logo"
+                 onclick="window.location.href='/'"/>
+        </div><!-- brand -->
+        <nav>
+            <ul class="reset" role="navigation">
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/board"><i class="fa fa-list" aria-hidden="true"></i> 게시물</a>
+                </li>
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/point"><i class="fa fa-krw" aria-hidden="true"></i> POINT</a>
+                </li>
+                <li class="menu-item icon">
+                    <a href="https://www.devit.shop/profile"><i class="fa fa-user icon" aria-hidden="true"></i> 프로필</a>
+                </li>
+                <li class="menu-item icon" id="general">
+                    <a onclick="logout()"><i class="fa fa-sign-out icon" aria-hidden="true"></i> 로그아웃</a>
+                </li>
+            </ul>
+        </nav>
+    </div><!-- row-content -->
+</header>
 <main role="main">
     <div id="main" class="row">
         <div class="row-content buffer-left buffer-right buffer-bottom clear-after">
@@ -446,14 +528,53 @@
         </div><!-- row-content -->
     </div><!-- row -->
 </main><!-- main -->
-<footer include-html="/footer" role="contentinfo"></footer>
+<footer>
+    <div class="row" style="margin-left: 5%">
+        <div class="row-content buffer clear-after ">
+            <section id="top-footer">
+                <div class="box">
+                    <div class="widget column"><!-- la class="widget" è forse generata utomaticamente da wp -->
+                        <h4>김지호</h4>
+                        <ul class="plain">
+                            <li><a href="">jeehp0102@naver.com</a></li>
+                            <li><a href="https://github.com/kimziaco">https://github.com/kimziaco</a></li>
+                            <li><a href="https://prod.velog.io/@jeeho102">https://prod.velog.io/@jeeho102</a></li>
+                        </ul>
+                    </div>
+                    <div class="widget column">
+                        <h4>김대희</h4>
+                        <ul class="plain">
+                            <li><a href="#">1998opening@gmail.com</a></li>
+                            <li><a href="https://github.com/eet43">https://github.com/eet43</a></li>
+                            <li><a href="https://daisyit.tistory.com/">https://daisyit.tistory.com/</a></li>
+                        </ul>
+                    </div>
+                    <div class="widget column">
+                        <h4>이다혜</h4>
+                        <ul class="plain">
+                            <li><a href="#">dahae80912@gmail.com</a></li>
+                            <li><a href="https://github.com/ekgpgdi">https://github.com/ekgpgdi</a></li>
+                            <li><a href="https://ddori-lee.tistory.com/">https://ddori-lee.tistory.com/</a></li>
+                        </ul>
+                    </div>
+                    <div class="widget column">
+                        <ul class="plain">
+                            <h4>느낌있조</h4>
+                            <li><i class="fa fa-github" aria-hidden="true"></i><a href="https://github.com/smRLadlTwh">
+                                https://github.com/smRLadlTwh</a></li>
+                            <li><i class="fa fa-envelope-o" aria-hidden="true"></i><a href=""> smRladlTwh@gmail.com</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </section><!-- top-footer -->
+            <section id="bottom-footer">
+                <p class="keep-left">&copy; 2022 느낌있조</p>
+            </section><!-- bottom-footer -->
+        </div><!-- row-content -->
+    </div><!-- row -->
+</footer>
 
 </body>
-<script>
-    includeHTML(function () {
-        includeRouter(function () {
-            // do something in the future
-        });
-    });
-</script>
 </html>
+

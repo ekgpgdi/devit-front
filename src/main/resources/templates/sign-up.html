@@ -227,16 +227,16 @@
                     withCredentials: true
                 },
                 success: function (response) {
+                    console.log(response);
                     if (response['httpStatus'] === 201) {
-                        console.log(response);
                         // access token 저장
                         localStorage.setItem("Authorization", `Bearer ${response["data"]["accessToken"]}`)
                         $('html').scrollTop(0);
                         $('#join-alert').prop('hidden', false);
                         setTimeout(function () {
                             $('#join-alert').prop('hidden', true);
-                            window.location.replace('https://www.devit.shop/board')
-                        }, 2000);
+                            window.location.href = '/board';
+                        }, 3000);
                     }
                 },
                 error: function (response) {

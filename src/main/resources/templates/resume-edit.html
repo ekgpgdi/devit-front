@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<!-- Created By CodingLab - www.codinglabweb.com -->
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <!---<title> Responsive Registration Form | CodingLab </title>--->
+    <link rel="stylesheet" href="https://s3.ap-northeast-2.amazonaws.com/devit.shop/css/post.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeHTML.js"></script>
+    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeRouter.js"></script>
+    <style>
+        alert {
+            background-color: #E3F6CE;
+            width: 100%;
+            padding: 10px;
+            color: #0B6121;;
+        }
+
+        .nopoint-alert {
+            background-color: #FBEFF2;
+            width: 100%;
+            height: 35px;
+            color: #F7819F;
+        }
+
+        .point-alert {
+            background-color: #EFF2FB;
+            width: 100%;
+            padding: 10px;
+            color: #819FF7;
+        }
+
+        .alert-text {
+            width: max-content;
+            margin: auto;
+        }
+
+        .icon {
+            margin-right: 10px;
+        }
+
+        .profile {
+            margin: 50px;
+        }
+
+        .big-text {
+            font-size: 20px
+        }
+
+        .general-text {
+            font-size: 15px
+        }
+
+        .calender {
+            margin-top: 10px;
+        }
+
+        .search {
+            margin-left: 10px;
+            margin-top: 13px;
+        }
+
+        .search-form {
+            height: 60px;
+            margin: 0 50px 50px;
+        }
+
+        .charge {
+            background-color: #EFF8FB;
+        }
+
+        .down {
+            background-color: #FBEFEF;
+        }
+
+        .pagination {
+            margin-bottom: 50px;
+        }
+
+        .header {
+            width: 100%;
+        }
+
+        .logo {
+            height: 50px;
+        }
+    </style>
+    <script>
+        function submit_resume() {
+
+            let gender = $('input:radio[name="gender"]:checked').val();
+            let year_s = $('#year').val()
+            let year = parseInt(year_s)
+            let phone_number = $('#phone_number').val()
+            let introduce = $('#introduce').val()
+            // let categoryName = 현재 사용하고 있지 않음.
+
+
+            let e_startDate = $('#e_start').val()
+            let e_endDate = $('#e_end').val()
+            let educationStatus = $('input:radio[name="e_status"]:checked').val();
+            let university = $('#e_university').val()
+            let department = $('#e_department').val()
+            let e_content = $('#e_content').val()
+
+            let educations = {
+                "startDate": e_startDate,
+                "endDate": e_endDate,
+                "educationStatus": educationStatus,
+                "university": university,
+                "department": department,
+                "content": e_content,
+            }
+
+            let c_startDate = $('#c_start').val()
+            let c_endDate = $('#c_end').val()
+            let careerStatus = $('input:radio[name="c_status"]:checked').val();
+            let office = $('#c_office').val()
+            let job = $('#c_job').val()
+            let c_content = $('#c_content').val()
+
+            let careers = {
+                "startDate": c_startDate,
+                "endDate": c_endDate,
+                "careerStatus": careerStatus,
+                "office": office,
+                "job": job,
+                "content": c_content
+            }
+
+            let a_startDate = $('#a_start').val()
+            let a_endDate = $('#a_end').val()
+            let competition = $('#a_competition').val()
+            let award = $('#a_award').val()
+            let a_content = $('#a_content').val()
+
+            let awards = {
+                "startDate": a_startDate,
+                "endDate": a_endDate,
+                "competition": competition,
+                "awards": award,
+                "content": a_content
+            }
+
+            let data = {
+                "gender": gender,
+                "year": year,
+                "phone_number": phone_number,
+                "introduce": introduce,
+                "categoryName": "springboot",
+                "educations": educations,
+                "careers": careers,
+                "awards": awards,
+            };
+
+            console.log(data)
+
+
+            let token = header_get_token();
+
+            $.ajax({
+                type: "PUT",
+                url: "https://backend.devit.shop/api/users/resumes",
+                beforeSend: function (xhr) {
+                    xhr.setRequestHeader("Authorization", token);
+                },
+                data: JSON.stringify(data),
+                processData: false,
+                contentType: "application/json",
+                success: function (response) {
+                    alert("이력서를 업데이트하였습니다.");
+                    location.href = 'profile';
+                    console.log(response)
+                }
+                , error: function (response) {
+                    console.log(response);
+                },
+            });
+        }
+
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="title" style="text-align : center">이력서</div>
+    <div class="content">
+        <input type="radio" name="gender" value="MAN" id="dot-1"><label for="dot-1">남자</label>
+        <input type="radio" name="gender" value="WOMAN" id="dot-2"><label for="dot-2">여자</label>
+        <div class="user-details">
+            <div class="input-box">
+                <span class="details">출생년도</span>
+                <input type="number" placeholder="생년월일을 입력해주세요(ex 981019)" id="year" required>
+            </div>
+            <div class="input-box">
+                <span class="details">핸드폰번호</span>
+                <input type="text" placeholder="핸드폰 번호를 입력해주세요(ex 01012345678)" id="phone_number" required>
+            </div>
+        </div>
+        <div class="content-details">
+            <div class="content-box">
+                <span class="details">자기소개</span>
+                <input type="text" placeholder="간단한 자기소개를 입력해주세요" id="introduce" required>
+            </div>
+        </div>
+
+
+        <hr style="margin : margin: 30px 0 30px 0;"/>
+        <div class="title" style="text-align : center; margin-top:20px">학력사항</div>
+        <div class="user-details" style="margin-top: 20px">
+            <div class="input-box">
+                <span class="details">입학년월</span>
+                <<input type="date" placeholder="시작일" id="e_start">
+            </div>
+            <div class="input-box">
+                <span class="details">졸업년월</span>
+                <<input type="date" placeholder="종료일" id="e_end">
+            </div>
+            <div class="input-box">
+                <span class="details">학교</span>
+                <input type="text" placeholder="학교를 입력해주세요" id="e_university">
+            </div>
+            <div class="input-box">
+                <span class="details">학과</span>
+                <input type="text" placeholder="학과를 입력해주세요" id="e_department">
+            </div>
+        </div>
+        <div class="content-details">
+            <div class="content-box">
+                <span class="details">내용</span>
+                <input type="text" placeholder="간단한 내용을 입력해주세요" id="e_content">
+            </div>
+        </div>
+        <input type="radio" name="e_status" value="ING" id="dot-3"><label for="dot-3">재학 중</label>
+        <input style="margin-bottom:20px" type="radio" name="e_status" value="DONE" id="dot-4"><label for="dot-4">졸업</label>
+
+
+        <hr style="margin : margin: 30px 0 30px 0;"/>
+        <div class="title" style="text-align : center; margin-top:20px">경력사항</div>
+        <div class="user-details" style="margin-top: 20px">
+            <div class="input-box">
+                <span class="details">입사년월</span>
+                <<input type="date" placeholder="시작일" id="c_start">
+            </div>
+            <div class="input-box">
+                <span class="details">퇴사년월</span>
+                <<input type="date" placeholder="종료일" id="c_end">
+            </div>
+            <div class="input-box">
+                <span class="details">회사</span>
+                <input type="text" placeholder="회사를 입력해주세요" id="c_office">
+            </div>
+            <div class="input-box">
+                <span class="details">업무</span>
+                <input type="text" placeholder="업무를 입력해주세요" id="c_job">
+            </div>
+        </div>
+        <div class="content-details">
+            <div class="content-box">
+                <span class="details">내용</span>
+                <input type="text" placeholder="업무에 관해 간단한 내용을 입력해주세요" id="c_content">
+            </div>
+        </div>
+        <input type="radio" name="c_status" value="ING" id="dot-5"><label for="dot-5">재직 중</label>
+        <input style="margin-bottom:20px" type="radio" name="c_status" value="DONE" id="dot-6"><label for="dot-6">종료</label>
+
+
+        <hr style="margin : margin: 30px 0 30px 0;"/>
+        <div class="title" style="text-align : center; margin-top:20px">수상사항</div>
+        <div class="user-details">
+            <div class="input-box">
+                <span class="details">대회시작</span>
+                <<input type="date" placeholder="시작일" id="a_start">
+            </div>
+            <div class="input-box">
+                <span class="details">대회종료</span>
+                <<input type="date" placeholder="종료일" id="a_end">
+            </div>
+            <div class="input-box">
+                <span class="details">대회명</span>
+                <input type="text" placeholder="대회를 입력해주세요" id="a_competition">
+            </div>
+            <div class="input-box">
+                <span class="details">입상명</span>
+                <input type="text" placeholder="상장명을 입력해주세요" id="a_award">
+            </div>
+        </div>
+        <div class="content-details">
+            <div class="content-box">
+                <span class="details">내용</span>
+                <input type="text" placeholder="간단한 내용을 입력해주세요" id="a_content">
+            </div>
+        </div>
+        <div class="button">
+            <input type="submit" value="제출하기" onclick="submit_resume()">
+        </div>
+    </div>
+</div>
+<script>
+    includeHTML(function () {
+        includeRouter(function () {
+            // do something in the future
+        });
+    });
+
+</script>
+</body>
+</html>

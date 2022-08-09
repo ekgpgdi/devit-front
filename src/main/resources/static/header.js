@@ -4,7 +4,7 @@ function logout() {
     let payload = parse_jwt(token);
     let login_type = payload["type"];
     console.log(login_type);
-    if(login_type === "SOCIAL") {
+    if (login_type === "SOCIAL") {
         social_logout();
     }
     $.removeCookie('Set-Cookie', {path: '/'});
@@ -24,25 +24,32 @@ function social_logout() {
 // Bearer ***.******.***
 function header_get_token() {
     let token = localStorage.getItem("Authorization");
-    valid_token(token);
+    console.log(token);
+    let success = valid_token(token);
     token = localStorage.getItem("Authorization");
+    console.log(token);
+
     return token;
 }
 
 // 토큰 유효시간 확인
-function valid_token(token){
+function valid_token(token) {
+    console.log("parse_jwt 진행")
     let payload = parse_jwt(token);
     console.log(payload["exp"] * 1000);
     console.log(new Date().getTime());
     if (payload["exp"] * 1000 < new Date().getTime()) {
         console.log("토큰 갱신");
-        refresh_token(token);
+        return refresh_token(token);
+    } else {
+        return "success";
     }
 }
 
 // 토큰의 payload 파싱
 function parse_jwt(bearToken) {
-    if(bearToken === null){
+    if (bearToken === null) {
+        console.log("bearToken === null")
         $('#token-login-alert').prop('hidden', false);
         setTimeout(function () {
             $('#token-login-alert').prop('hidden', true);
@@ -61,19 +68,23 @@ function parse_jwt(bearToken) {
 
 // 토큰 갱신
 function refresh_token(token) {
+    console.log("refreshToken 갱신 시작!")
+    console.log("withCredentials true")
     $.ajax({
         type: "GET",
-        url: 'https://backend.devit.shop/api/payment/refresh',
+        url: 'https://backend.devit.shop/api/auth/refresh',
         data: {},
         beforeSend: function (xhr) {
             xhr.setRequestHeader("Authorization", token);
         },
+        async: false,
         xhrFields: {
             withCredentials: true
         },
         success: function (response) {
             console.log(response)
-            localStorage.setItem("access_token", response["data"]["accessToken"])
+            localStorage.setItem("Authorization", `Bearer ${response["data"]["accessToken"]}`)
+            return "success";
         },
         error: function (response) {
             console.log(response)

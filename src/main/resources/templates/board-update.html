@@ -25,8 +25,7 @@
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
     <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/header.js"></script>
-    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeHTML.js"></script>
-    <script src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/js/includeRouter.js"></script>
+
 
     <title>수정하기</title>
 
@@ -145,6 +144,7 @@
     </style>
 
     <script>
+
         $(document).ready(function () {
             let params = new URLSearchParams(window.location.search);
             var boardId = params.get('uid');
@@ -169,6 +169,16 @@
             return str.replace(/[^\d]+/g, '');
         }
 
+        function XSSCheck(str, level) {
+            if (level === undefined || level === 0) {
+                str = str.replace(/\<|\>|\"|\'|\%|\;|\(|\)|\&|\+|\-/g,"");
+            } else if (level !== undefined && level === 1) {
+                str = str.replace(/\</g, "&lt;");
+                str = str.replace(/\>/g, "&gt;");
+            }
+            return str;
+        }
+
         function update() {
             let params = new URLSearchParams(window.location.search);
             var boardId = params.get('id')
@@ -185,14 +195,15 @@
             console.log(image);
 
             let form_data = new FormData()
-            form_data.append("title", title)
+            form_data.append("title", XSSCheck(title,1))
             form_data.append("price", price)
 
             if (image !== undefined) {
                 form_data.append("image", image)
             }
 
-            form_data.append("content", content)
+
+            form_data.append("content", XSSCheck(content,1))
 
             let token1 = localStorage.getItem("Authorization");
             console.log(token1)
@@ -201,7 +212,7 @@
 
             $.ajax({
                 type: "POST",
-                url: "https://devit-backend.shop/api/boards/" + boardId,
+                url: "https://backend.devit.shop/api/boards/" + boardId,
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", token);
                 },
@@ -234,24 +245,36 @@
             let token = header_get_token();
             $.ajax({
                 type: "GET",
-                url: `https://devit-backend.shop/api/boards/${uuid}`,
+                url: `https://backend.devit.shop/api/boards/${uuid}`,
                 data: {},
                 beforeSend: function (xhr) {
                     xhr.setRequestHeader("Authorization", token);
                 },
                 success: function (response) {
 
+                    let usertoken = parse_jwt(token)
+                    console.log(usertoken)
+                    userUid = usertoken["uuid"]
+
                     let boards = response
                     let id = boards['id'];
+                    let boarduser = boards['userUid']
                     console.log(boards)
                     console.log(id)
 
+                    if (boarduser !== userUid) {
+                        alert("권한이 없습니다.")
+                        let params = new URLSearchParams(window.location.search);
+                        let boardUid = params.get('uid')
+                        window.location.href = `/board-detail?uuid=${boardUid}`
+                    }
                     let title = boards['title'];
                     $('#title').val(title);
                     let content = boards['content'];
                     $('#content').val(content);
                     let price = boards['price'];
                     $('#price').val(price);
+
                 }
             })
         }
@@ -273,13 +296,12 @@
     </div>
     <div class="nav-inner row-content buffer-left buffer-right even clear-after">
         <div id="brand" style="float:left; display: flex; width: 200px">
-            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo"
-                 class="logo"/>
+            <img src="https://s3.ap-northeast-2.amazonaws.com/devit.shop/images/header-logo.png" alt="logo" class="logo" onclick="window.location.href='/'"/>
         </div><!-- brand -->
         <nav>
             <ul class="reset" role="navigation">
                 <li class="menu-item icon">
-                    <a href="https://www.devit.shop/board"><i class="fa fa-home icon" aria-hidden="true"></i> Home</a>
+                    <a href="https://www.devit.shop/board"><i class="fa fa-list" aria-hidden="true"></i> 게시물</a>
                 </li>
                 <li class="menu-item icon">
                     <a href="https://www.devit.shop/point"><i class="fa fa-krw" aria-hidden="true"></i> POINT</a>
